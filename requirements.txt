@@ -1,0 +1,8 @@
+# Web framework (supports Python 3.13)
+Django>=5.1,<5.2
+
+# ImageField support
+Pillow>=10.0,<12.0
+
+# Windows only: IANA time zone data (Django uses zoneinfo)
+tzdata>=2024.1; sys_platform == "win32"

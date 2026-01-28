@@ -1,0 +1,189 @@
+{% extends 'main/base.html' %}
+{% block title %}Browse Listings{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">Browse Listings</h1>
+    <p class="mt-2 text-gray-600">Find great deals on items near you</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <!-- Filters Sidebar -->
+    <aside class="lg:col-span-1">
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 sticky top-6">
+        <!-- Search Form -->
+        <form method="get" action="{% url 'listings:index' %}" class="mb-6">
+          <label for="search" class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+          <div class="relative">
+            <input 
+              name="q" 
+              id="search"
+              class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200" 
+              type="text"
+              value="{{ q }}" 
+              placeholder="Search listings..."
+            >
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
+          
+          <!-- Hidden field to preserve category when searching -->
+          {% if active_category %}
+            <input type="hidden" name="category" value="{{ active_category }}">
+          {% endif %}
+          
+          <button type="submit" class="mt-3 w-full py-3 bg-teal-500 hover:bg-teal-600 text-white font-medium rounded-xl transition duration-200">
+            <svg class="h-5 w-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            Search
+          </button>
+        </form>
+
+        <!-- Categories -->
+        <div class="mb-6">
+          <h3 class="font-semibold text-gray-900 mb-3 flex items-center">
+            <svg class="h-5 w-5 mr-2 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+            </svg>
+            Categories
+          </h3>
+          <ul class="space-y-1">
+            {% for c in categories %}
+              <li>
+                <a 
+                  href="{% url 'listings:index' %}?q={{ q }}&category={{ c.id }}" 
+                  class="block py-2.5 px-3 rounded-lg transition duration-200 {% if c.id == active_category %}bg-teal-100 text-teal-700 font-medium{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
+                >
+                  {{ c.name }}
+                  {% if c.id == active_category %}
+                    <svg class="h-4 w-4 inline float-right mt-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                  {% endif %}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <!-- Active Filters & Clear -->
+        {% if q or active_category %}
+          <div class="pt-4 border-t border-gray-200">
+            <div class="mb-3">
+              <p class="text-sm font-medium text-gray-700 mb-2">Active Filters:</p>
+              <div class="space-y-2">
+                {% if q %}
+                  <div class="inline-flex items-center px-3 py-1.5 bg-teal-100 text-teal-700 text-sm rounded-full">
+                    <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    "{{ q }}"
+                  </div>
+                {% endif %}
+                {% if active_category %}
+                  <div class="inline-flex items-center px-3 py-1.5 bg-teal-100 text-teal-700 text-sm rounded-full ml-1">
+                    <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                    </svg>
+                    Category
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+            <a 
+              href="{% url 'listings:index' %}" 
+              class="block w-full py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-center font-medium rounded-xl transition duration-200"
+            >
+              <svg class="h-4 w-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              Clear Filters
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </aside>
+
+    <!-- Listings Grid -->
+    <main class="lg:col-span-3">
+      <!-- Results Header -->
+      <div class="mb-5 flex items-center justify-between">
+        <p class="text-gray-600">
+          {% if q or active_category %}
+            <span class="font-medium text-gray-900">{{ listings|length }}</span> result{{ listings|length|pluralize }} found
+          {% else %}
+            Showing <span class="font-medium text-gray-900">{{ listings|length }}</span> listing{{ listings|length|pluralize }}
+          {% endif %}
+        </p>
+        
+        <!-- Optional: Sort dropdown could go here -->
+      </div>
+
+      {% if listings %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {% for l in listings %}
+            <a href="{% url 'listings:detail' l.id %}" class="group block bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition duration-200">
+              <!-- Image -->
+              {% if l.image %}
+                <div class="aspect-video overflow-hidden bg-gray-200">
+                  <img 
+                    src="{{ l.image.url }}" 
+                    alt="{{ l.title }}"
+                    class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                  >
+                </div>
+              {% else %}
+                <div class="aspect-video bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+                  <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                  </svg>
+                </div>
+              {% endif %}
+
+              <!-- Details -->
+              <div class="p-4">
+                <h3 class="text-lg font-semibold text-gray-900 group-hover:text-teal-600 transition duration-200 line-clamp-1 mb-2">
+                  {{ l.title }}
+                </h3>
+                <div class="flex items-center justify-between">
+                  <p class="text-xl font-bold text-teal-600">${{ l.price }}</p>
+                  <span class="text-sm text-gray-500">View details →</span>
+                </div>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <!-- Empty State -->
+        <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+          <div class="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-4">
+            <svg class="h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">No listings found</h3>
+          <p class="text-gray-500 mb-6 max-w-md mx-auto">
+            {% if q or active_category %}
+              We couldn't find any listings matching your search. Try adjusting your filters or search terms.
+            {% else %}
+              There are no listings available at the moment. Check back later!
+            {% endif %}
+          </p>
+          {% if q or active_category %}
+            <a href="{% url 'listings:index' %}" class="inline-flex items-center px-6 py-3 bg-teal-500 hover:bg-teal-600 text-white font-medium rounded-xl transition duration-200">
+              <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              View All Listings
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </main>
+  </div>
+</div>
+{% endblock %}

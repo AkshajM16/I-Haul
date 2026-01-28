@@ -1,0 +1,185 @@
+{% extends 'main/base.html' %}
+{% block title %}New Conversation{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-8">
+  <div class="mb-8">
+    <a href="{% url 'conversations:inbox' %}" class="inline-flex items-center text-gray-600 hover:text-gray-900 transition mb-4">
+      <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      </svg>
+      Back to Inbox
+    </a>
+    <h1 class="text-3xl font-bold text-gray-900">Start a Conversation</h1>
+    <p class="mt-2 text-gray-600">Send a message about this listing</p>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+    <!-- Listing Context (if available) -->
+    {% if listing %}
+      <div class="bg-gray-50 border-b border-gray-200 p-5">
+        <p class="text-sm font-medium text-gray-700 mb-3">About this listing:</p>
+        <div class="flex items-center space-x-4">
+          {% if listing.image %}
+            <img 
+              src="{{ listing.image.url }}" 
+              alt="{{ listing.title }}"
+              class="w-16 h-16 rounded-lg object-cover"
+            >
+          {% else %}
+            <div class="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center">
+              <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+            </div>
+          {% endif %}
+          <div class="flex-1">
+            <h3 class="font-semibold text-gray-900">{{ listing.title }}</h3>
+            <p class="text-sm text-gray-600">${{ listing.price }}</p>
+          </div>
+          <a href="{% url 'listings:detail' listing.id %}" class="text-sm text-teal-600 hover:text-teal-700 font-medium">
+            View Listing
+          </a>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Message Form -->
+    <div class="p-6 md:p-8">
+      <form method="post" action="." class="space-y-6">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+            <div class="flex items-start">
+              <svg class="h-5 w-5 text-red-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+              </svg>
+              <div class="ml-3">
+                <p class="text-sm text-red-800">{{ form.non_field_errors }}</p>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Info Banner -->
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div class="flex items-start">
+            <svg class="h-5 w-5 text-blue-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+            </svg>
+            <div class="ml-3">
+              <p class="text-sm text-blue-800">
+                Your message will be sent to the seller. Be polite and ask any questions you have about the listing.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-5">
+          {% for field in form %}
+            <div>
+              <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                {{ field.label }}
+                {% if field.field.required %}
+                  <span class="text-red-500">*</span>
+                {% endif %}
+              </label>
+              
+              <textarea 
+                name="{{ field.name }}" 
+                id="{{ field.id_for_label }}"
+                rows="6"
+                placeholder="Hi! I'm interested in this item. Is it still available?"
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 resize-none {% if field.errors %}border-red-500{% endif %}"
+                {% if field.field.required %}required{% endif %}
+              >{{ field.value|default:'' }}</textarea>
+              
+              {% if field.help_text %}
+                <p class="mt-1.5 text-sm text-gray-500">{{ field.help_text }}</p>
+              {% endif %}
+              
+              {% if field.errors %}
+                <div class="mt-1.5">
+                  {% for error in field.errors %}
+                    <p class="text-sm text-red-600">{{ error }}</p>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Character Counter (optional enhancement) -->
+        <div class="text-right">
+          <p class="text-xs text-gray-500">
+            <span id="char-count">0</span> characters
+          </p>
+        </div>
+
+        <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+          <a href="{% url 'conversations:inbox' %}" class="px-5 py-2.5 text-gray-700 hover:text-gray-900 font-medium transition duration-200">
+            Cancel
+          </a>
+          <button 
+            type="submit" 
+            class="px-8 py-3 bg-teal-500 hover:bg-teal-600 text-white font-medium rounded-xl transition duration-200 shadow-sm hover:shadow-md inline-flex items-center space-x-2"
+          >
+            <span>Send Message</span>
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tips Section -->
+  <div class="mt-6 bg-gray-50 rounded-xl p-5 border border-gray-200">
+    <h3 class="font-semibold text-gray-900 mb-3 flex items-center">
+      <svg class="h-5 w-5 mr-2 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+      </svg>
+      Messaging Tips
+    </h3>
+    <ul class="text-sm text-gray-700 space-y-2">
+      <li class="flex items-start">
+        <svg class="h-5 w-5 text-teal-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        Be specific about what you're interested in
+      </li>
+      <li class="flex items-start">
+        <svg class="h-5 w-5 text-teal-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        Ask questions about condition, availability, or meeting details
+      </li>
+      <li class="flex items-start">
+        <svg class="h-5 w-5 text-teal-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        Keep it friendly and professional
+      </li>
+    </ul>
+  </div>
+</div>
+
+<script>
+// Character counter for message textarea
+document.addEventListener('DOMContentLoaded', function() {
+  const textarea = document.querySelector('textarea');
+  const charCount = document.getElementById('char-count');
+  
+  if (textarea && charCount) {
+    textarea.addEventListener('input', function() {
+      charCount.textContent = this.value.length;
+    });
+    
+    // Initialize count
+    charCount.textContent = textarea.value.length;
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends 'main/base.html' %}
+{% block title %}Chat Thread{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-6">
+  <!-- Chat Header -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mb-4">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <a href="{% url 'conversations:inbox' %}" class="text-gray-400 hover:text-gray-600 transition">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+        </a>
+        <div>
+          <h1 class="text-xl font-semibold text-gray-900">
+            {% for member in conversation.members.all %}
+              {% if member != request.user %}
+                {{ member.username }}
+              {% endif %}
+            {% endfor %}
+          </h1>
+          <p class="text-sm text-gray-500">{{ conversation.listing.title }}</p>
+        </div>
+      </div>
+      
+      {% if conversation.listing %}
+        <a href="{% url 'listings:detail' conversation.listing.id %}" class="text-sm text-teal-600 hover:text-teal-700 font-medium">
+          View Listing
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Messages Container -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200 mb-4">
+    <div class="p-6 max-h-[600px] overflow-y-auto" id="messages-container">
+      <div class="space-y-4" aria-live="polite">
+        {% for message in conversation.messages.all %}
+          <div class="flex {% if message.created_by == request.user %}justify-end{% else %}justify-start{% endif %}">
+            <div class="max-w-xl">
+              <!-- Message Bubble -->
+              <div class="{% if message.created_by == request.user %}bg-teal-500 text-white{% else %}bg-gray-100 text-gray-900{% endif %} rounded-2xl px-4 py-3 shadow-sm">
+                {% if message.created_by != request.user %}
+                  <p class="text-xs font-semibold mb-1 {% if message.created_by == request.user %}text-teal-100{% else %}text-gray-600{% endif %}">
+                    {{ message.created_by.username }}
+                  </p>
+                {% endif %}
+                <p class="text-sm leading-relaxed break-words">{{ message.content }}</p>
+              </div>
+              
+              <!-- Timestamp -->
+              <p class="text-xs {% if message.created_by == request.user %}text-right{% else %}text-left{% endif %} mt-1 px-2 text-gray-500">
+                {{ message.created_at|date:"M j, g:i a" }}
+              </p>
+            </div>
+          </div>
+        {% empty %}
+          <div class="text-center py-12">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+              <svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">No messages yet</h3>
+            <p class="text-gray-500">Start the conversation by sending a message below!</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Message Input Form -->
+    <div class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-2xl">
+      <form method="post" action="." class="flex items-end space-x-3">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="mb-3 p-4 bg-red-50 border border-red-200 rounded-xl w-full">
+            <div class="flex items-start">
+              <svg class="h-5 w-5 text-red-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+              </svg>
+              <div class="ml-3">
+                <p class="text-sm text-red-800">{{ form.non_field_errors }}</p>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="flex-1">
+          {% for field in form %}
+            <textarea 
+              name="{{ field.name }}" 
+              id="{{ field.id_for_label }}"
+              rows="1"
+              placeholder="Type your message..."
+              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 resize-none {% if field.errors %}border-red-500{% endif %}"
+              onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); this.form.submit(); }"
+              oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"
+              {% if field.field.required %}required{% endif %}
+            >{{ field.value|default:'' }}</textarea>
+            
+            {% if field.errors %}
+              <div class="mt-1.5">
+                {% for error in field.errors %}
+                  <p class="text-sm text-red-600">{{ error }}</p>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+
+        <button 
+          type="submit" 
+          class="px-6 py-3 bg-teal-500 hover:bg-teal-600 text-white font-medium rounded-xl transition duration-200 shadow-sm hover:shadow-md flex items-center space-x-2"
+        >
+          <span>Send</span>
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+          </svg>
+        </button>
+      </form>
+      <p class="text-xs text-gray-500 mt-2 px-1">Press Enter to send, Shift+Enter for new line</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// Auto-scroll to bottom on page load
+window.addEventListener('load', function() {
+  const container = document.getElementById('messages-container');
+  if (container) {
+    container.scrollTop = container.scrollHeight;
+  }
+});
+</script>
+{% endblock %}
